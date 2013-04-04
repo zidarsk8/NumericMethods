@@ -1,14 +1,15 @@
 1;
 
-function Z=generateZ(l,r,u,d,n,m)
-    Z = zeros(n,m)
-    hn = 1 / (n-1)
-    hm = 1 / (m-1)
-    Z(:,1) = l(-1:hn:1);
-    Z(:,end) = r(-1:hn:1);
-    Z(1,:) = u(-1:hm:1);
-    Z(end,:) = d(-1:hm:1);
+function Z = genZ(m,n,a,b,c,d,u)
+    x = linspace (a,b,m+2)
+    y = linspace (c,d,n+2)
+    Z = zeros(m+2,n+2);
+    Z(:,1) = u(x,y(1))
+    Z(:,end) = u(x,y(end))
+    Z(1,:) = u(x(1),y)
+    Z(end,:) = u(x(end),y)
 endfunction
+
 
 function x=plot(Z,h)
     x = y = -1:h:1;
@@ -16,13 +17,8 @@ function x=plot(Z,h)
     mesh(x,y,Z);
 endfunction
 
-function Z = GausSeidel(l,r,u,d,f,h,i)
-    n=2/h+1;
-    Z = zeros(n);
-    Z(:,1) = l(-1:h:1);
-    Z(:,end) = r(-1:h:1);
-    Z(1,:) = u(-1:h:1);
-    Z(end,:) = d(-1:h:1);
+function Z = GausSeidel(f,Z,x,y)
+    
 
     for j=1:i
         for a=2:n-1
