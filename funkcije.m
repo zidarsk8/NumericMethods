@@ -2,8 +2,8 @@
 
 function [P,b] = genPb(Z,f,h)
     s = size(Z);
-    m = min(s)-2;
-    n = max(s)-2;
+    m = s(1)-2 %min(s)-2;
+    n = s(2)-2 %max(s)-2;
     P = zeros(m*n);
     P += diag(-ones(1,m*n-m),m);
     P += diag(-ones(1,m*n-m),-m);
@@ -11,18 +11,18 @@ function [P,b] = genPb(Z,f,h)
     P += diag(-repmat([ones(1,m-1) 0],1,n)(1:m*n-1),-1);
     P += eye(m*n)*4;
 
-    zu = [Z(1,2:end-1) zeros(1, n*m - (s(2)-2))];
-    zd = [zeros(1, n*m - (s(2)-2)) Z(end,2:end-1)];
+    zu = [Z(2:end-1,1)' zeros(1, n*m - (s(1)-2))];
+    zd = [zeros(1, n*m - (s(1)-2)) Z(2:end-1,end)'];
     zl = zeros(1,m*n);
-    zl((1:s(2)-2:end)+s(2)-3) = Z(2:end-1,end)';
+    zl((1:s(2)-2:end)+s(2)-3) = Z(end,2:end-1);
     zr = zeros(1,m*n);
-    zr((1:s(2)-2:end)) = Z(2:end-1,1)';
+    zr((1:s(2)-2:end)) = Z(1,2:end-1);
 
     ga = repmat(1:m,1,n);
     gb = ceil((1:m*n)./m);
     g = @(a,b) f(b*h,a*h)*h^2;
     gvals = g(ga,gb);
-    b = (gvals-zu-zd-zl-zr)';
+    b = (gvals+zu+zd+zl+zr)';
 endfunction
 
 function Z = genZ(m,n,a,b,h,u)
