@@ -80,7 +80,7 @@ endfunction
 
 function Z = BuiltIn(f,Z,x,y,h,i)
     [m,n] = size(Z);
-    [P,b] = genPb(Z,f,h)
+    [P,b] = genPb(m,n)
     Z = zeros(m+2)
     Z(2:end-1,2:end-1) = reshape(P\gvals',[m,m]);
     plot(Z,h,y,x);

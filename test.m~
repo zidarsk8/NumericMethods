@@ -14,6 +14,9 @@ Z = genZ(m,n,a,b,h,u);
 
 f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
+
+[P,b] = genPb(Z,f,h)
+
 zz = BuiltIn(f,Z,b,a,h,50)
 
 
