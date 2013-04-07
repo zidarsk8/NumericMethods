@@ -1,13 +1,14 @@
 funkcije;
 
 m = 5; % stevilo vrstic znotraj matrike
-n = 4; % stevilo stolpcev znotraj matrike
+n = 5; % stevilo stolpcev znotraj matrike
 
 a = 0; % zacetna vrednost Y intervala
 b = 0; % zacetna vrednost X intervala
 h = 1/6; % korak v X in Y smeri
 
 u = @(x,y)0.05+x/100;
+u = @(x,y)0;
 
 Z = genZ(m,n,a,b,h,u);
 %P = genP(m,n,a,b,h,u);

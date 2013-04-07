@@ -22,7 +22,7 @@ function [P,b] = genPb(Z,f,h)
     gb = ceil((1:m*n)./m);
     g = @(a,b) f(b*h,a*h)*h^2;
     gvals = g(ga,gb);
-    b = gvals %(gvals-zu-zd-zl-zr);
+    b = gvals' %(gvals-zu-zd-zl-zr);
 endfunction
 
 function Z = genZ(m,n,a,b,h,u)
@@ -79,19 +79,12 @@ function [Z,iter,err] = GausSeidel(f,Z,x,y,h,maxIter,maxError)
 endfunction
 
 function Z = BuiltIn(f,Z,x,y,h,i)
-    [m,n] = size(Z);
-    [P,b] = genPb(m,n)
-    Z = zeros(m+2)
-    Z(2:end-1,2:end-1) = reshape(P\gvals',[m,m]);
+    s = size(Z);
+    [P,b] = genPb(Z,f,h)
+    Z(2:end-1,2:end-1) = reshape(P\b,s-2);
     plot(Z,h,y,x);
 endfunction
 
-function Z = BuiltIn(f,Z,x,y,h,i)
-    s = size(Z);
-    [P,b] = genPb(Z,f,h);
-    Z(2:end-1,2:end-1) = reshape(P\b',s-2);
-    plot(Z,h,y,x);
-endfunction
 
 function Z = GausSeidelPlot(f,Z,x,y,h,i)
     s = size(Z);
