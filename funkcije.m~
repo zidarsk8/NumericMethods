@@ -12,11 +12,11 @@ function [P,b] = genPb(Z,f,h)
     P += eye(m*n)*4;
 
     zu = [Z(2:end-1,1)' zeros(1, n*m - (s(1)-2))];
-    zd = [zeros(1, n*m - (s(1)-2)) Z(2:end-1,1)'];
+    zd = [zeros(1, n*m - (s(1)-2)) Z(2:end-1,end)'];
     zl = zeros(1,m*n);
-    zl((1:s(2)-2:end)+s(2)-3) = Z(end,2:end-1);
+    zl((1:s(1)-2:end)+s(1)-3) = Z(end,2:end-1);
     zr = zeros(1,m*n);
-    zr((1:s(2)-2:end)) = Z(1,2:end-1);
+    zr((1:s(1)-2:end)) = Z(1,2:end-1);
 
     ga = repmat(1:m,1,n);
     gb = ceil((1:m*n)./m);
@@ -80,7 +80,7 @@ endfunction
 
 function Z = BuiltIn(f,Z,x,y,h,i)
     s = size(Z);
-    [P,b] = genPb(Z,f,h)
+    [P,b] = genPb(Z,f,h);
     Z(2:end-1,2:end-1) = reshape(P\b,s-2);
     plot(Z,h,y,x);
 endfunction
@@ -107,7 +107,7 @@ endfunction
 
 function gzTestSmall()
     m = 5; % stevilo vrstic znotraj matrike
-    n = 5; % stevilo stolpcev znotraj matrike
+    n = 8; % stevilo stolpcev znotraj matrike
     a = 0; % zacetna vrednost Y intervala
     b = 0; % zacetna vrednost X intervala
     h = 1/6; % korak v X in Y smeri
@@ -115,6 +115,18 @@ function gzTestSmall()
     Z = genZ(m,n,a,b,h,u);
     f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
     GausSeidelPlot(f,Z,b,a,h,50);
+endfunction
+
+function biTestSmall()
+    m = 5; % stevilo vrstic znotraj matrike
+    n = 8; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+    BuiltIn(f,Z,b,a,h,50)
 endfunction
 
 function gzTest2()

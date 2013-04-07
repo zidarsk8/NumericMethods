@@ -15,11 +15,15 @@ Z = genZ(m,n,a,b,h,u);
 
 f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
-zz = BuiltIn(f,Z,b,a,h,50)
+%zz = BuiltIn(f,Z,b,a,h,50)
 
 
 %g = @(x,y)-f(x*h,y*h)*h^2;
-%gzTestSmall()
+gzTestSmall()
+
+  disp ("press return to continue")
+  pause () 
+biTestSmall()
 
 
 
