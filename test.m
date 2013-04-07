@@ -1,15 +1,21 @@
 funkcije;
 
-m = 7; % stevilo vrstic znotraj matrike
-n = 5; % stevilo stolpcev znotraj matrike
+m = 20; % stevilo vrstic znotraj matrike
+n = 40; % stevilo stolpcev znotraj matrike
 a = 0; % zacetna vrednost Y intervala
 b = 0; % zacetna vrednost X intervala
-h = 1/6; % korak v X in Y smeri
+h = 1/60; % korak v X in Y smeri
 u = @(x,y)0.05+x/100;
 Z = genZ(m,n,a,b,h,u);
 f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
+mul2Test1()
+mul2Test2()
+mulTest3()
 
+%BuiltIn(f,Z,a,b,h,0)
+%PoissonCG(f,Z,a,b,h,0)
+%PoissonCGsparse(f,Z,a,b,h,0);
 
 
 

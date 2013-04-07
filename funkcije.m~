@@ -31,7 +31,7 @@ function [P,b] = genPbSparse(Z,f,h)
     m = s(1)-2; %min(s)-2;
     n = s(2)-2; %max(s)-2;
     P = [ zeros(1,m) ones(1,m*n-m)*-1 ; 
-	  0 -repmat([ones(1,m-1) 0],1,n)(1:m*n-1) ; 
+      0 -repmat([ones(1,m-1) 0],1,n)(1:m*n-1) ; 
           ones(1,m*n)*4 ; 
           -repmat([ones(1,m-1) 0],1,n)(1:m*n-1) 0 ;
           -ones(1,m*n-m) zeros(1,m)  ]';
@@ -62,31 +62,45 @@ function Z = genZ(m,n,a,b,h,u)
 endfunction
 
 function y = mul(A,x)
-    l = size(A)(1)
-    m = l / sum(A(:,1))
-    n = l / m
-   
-    
+
+    l = size(A)(1);
+    m = l + sum(A(:,1));
+    n = l / m;
+    x = [zeros(m+1,1);x;zeros(m+1,1)];
+    y = zeros(l,1);
+    for i = 1:l
+        y(i) = A(i,1)*x(i+1) + A(i,2)*x(i+m) + A(i,3)*x(i+m+1) + A(i,4)*x(i+m+2) + A(i,5)*x(i+m+m+1);
+    endfor 
 endfunction
+
+function y = mul2(A,x)
+    l = size(A)(1);
+    m = l + sum(A(:,1));
+    n = l / m;
+    xx = [([zeros(m,1); x(1:end-m)]) ([0; x(1:end-1)]) (x) ([x(2:end); 0]) ([x(m+1:end); zeros(m,1)])];
+    y = sum((A.*xx)')';
+endfunction
+
 
 function x = CGsparse(A,b)
     %x = P\b
-    x = b
+    x = b;
     r = b-mul(A,x);
     p = r;
     rsold = r'*r;
  
-    for i = 1:10^6
+    for i = 1:100
         Ap = mul(A,p);
         alpha = rsold/(p'*Ap);
         x = x+alpha*p;
         r = r-alpha*Ap;
         rsnew = r'*r;
-        if sqrt(rsnew)<1e-10
+        if sqrt(rsnew)<1e-5
               break;
         endif
         p = r+rsnew/rsold*p;
         rsold = rsnew;
+        i
     endfor
 endfunction
 
@@ -118,6 +132,13 @@ function Z = PoissonCG(f,Z,x,y,h,i)
     plot(Z,h,y,x);
 endfunction
 
+
+function Z = PoissonCGsparse(f,Z,x,y,h,i)
+    s = size(Z);
+    [P,b] = genPbSparse(Z,f,h);
+    Z(2:end-1,2:end-1) = reshape(CGsparse(P,b),s-2);
+    plot(Z,h,y,x);
+endfunction
 
 
 function Z = BuiltIn(f,Z,x,y,h,i)
@@ -194,6 +215,142 @@ function gzTest()
     f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
     GausSeidelPlot(f,Z,b,a,h,50);
 endfunction
+
+
+function mulTest1()
+    m = 10; % stevilo vrstic znotraj matrike
+    n = 6; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+
+    [p,b] = genPb(Z,f,h);
+    [ps,bs] = genPbSparse(Z,f,h);
+
+    max(p*b - mul(ps,bs))
+endfunction
+
+
+function mulTest2()
+    m = 10; % stevilo vrstic znotraj matrike
+    n = 60; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+
+    [p,b] = genPb(Z,f,h);
+    [ps,bs] = genPbSparse(Z,f,h);
+
+    max(p*b - mul(ps,bs))
+endfunction
+
+
+function mulTest3()
+    m = 500; % stevilo vrstic znotraj matrike
+    n = 500; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+    [ps,bs] = genPbSparse(Z,f,h);
+    fflush(stdout)
+    for i = 1:10
+    	bs = mul(ps,bs);
+        max(bs)
+        fflush(stdout)
+    endfor
+endfunction
+
+
+
+
+
+
+
+
+
+
+
+
+function mul2Test1()
+    m = 10; % stevilo vrstic znotraj matrike
+    n = 6; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+
+    [p,b] = genPb(Z,f,h);
+    [ps,bs] = genPbSparse(Z,f,h);
+
+    max(p*b - mul2(ps,bs))
+endfunction
+
+
+function mul2Test2()
+    m = 10; % stevilo vrstic znotraj matrike
+    n = 60; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+
+    [p,b] = genPb(Z,f,h);
+    [ps,bs] = genPbSparse(Z,f,h);
+
+    max(p*b - mul2(ps,bs))
+endfunction
+
+
+function mul2Test3()
+    m = 500; % stevilo vrstic znotraj matrike
+    n = 500; % stevilo stolpcev znotraj matrike
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    h = 1/6; % korak v X in Y smeri
+    u = @(x,y)0.05+x/100;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+
+    [ps,bs] = genPbSparse(Z,f,h);
+    fflush(stdout)
+    for i = 1:10
+    	bs = mul2(ps,bs);
+        max(bs)
+        fflush(stdout)
+    endfor
+endfunction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
