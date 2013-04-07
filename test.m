@@ -1,29 +1,28 @@
 funkcije;
 
-m = 5; % stevilo vrstic znotraj matrike
+m = 7; % stevilo vrstic znotraj matrike
 n = 5; % stevilo stolpcev znotraj matrike
-
 a = 0; % zacetna vrednost Y intervala
 b = 0; % zacetna vrednost X intervala
 h = 1/6; % korak v X in Y smeri
-
 u = @(x,y)0.05+x/100;
-%u = @(x,y)0;
-
 Z = genZ(m,n,a,b,h,u);
-%P = genP(m,n,a,b,h,u);
-
 f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
-%zz = BuiltIn(f,Z,b,a,h,50)
 
 
-%g = @(x,y)-f(x*h,y*h)*h^2;
-gzTestSmall()
 
-  disp ("press return to continue")
-  pause () 
-biTestSmall()
+
+%gzTestSmall(8,5)
+%  disp ("press return to continue")
+%  pause () 
+%biTestSmall(8,5)
+%  disp ("press return to continue")
+%  pause () 
+%gzTestSmall(5,8)
+%  disp ("press return to continue")
+%  pause () 
+%biTestSmall(5,8)
 
 
 
