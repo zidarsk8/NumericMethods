@@ -9,8 +9,6 @@ u = @(x,y)0.05+x/100;
 Z = genZ(m,n,a,b,h,u);
 f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
-mul2Test1()
-mul2Test2()
 mulTest3()
 
 %BuiltIn(f,Z,a,b,h,0)
