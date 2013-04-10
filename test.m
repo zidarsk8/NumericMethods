@@ -1,15 +1,24 @@
 funkcije;
 
-m = 20; % stevilo vrstic znotraj matrike
-n = 40; % stevilo stolpcev znotraj matrike
-a = 0; % zacetna vrednost Y intervala
-b = 0; % zacetna vrednost X intervala
-h = 1/60; % korak v X in Y smeri
-u = @(x,y)0.05+x/100;
-Z = genZ(m,n,a,b,h,u);
-f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
 
-mulTest3()
+m = 200;
+n = m;
+maxIter = 1e3;
+maxError = 1e-7;
+
+CGSparseTest(m,n,maxIter,maxError)
+
+
+%m = 20; % stevilo vrstic znotraj matrike
+%n = 40; % stevilo stolpcev znotraj matrike
+%a = 0; % zacetna vrednost Y intervala
+%b = 0; % zacetna vrednost X intervala
+%h = 1/60; % korak v X in Y smeri
+%u = @(x,y)0.05+x/100;
+%Z = genZ(m,n,a,b,h,u);
+%f = @(x,y)ifelse(y==0.5,1,0).*ifelse(x==0.5,1,0);
+%
+%mulTest3()
 
 %BuiltIn(f,Z,a,b,h,0)
 %PoissonCG(f,Z,a,b,h,0)

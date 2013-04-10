@@ -20,7 +20,7 @@ function [P,b] = genPb(Z,f,h)
 
     ga = repmat(1:m,1,n);
     gb = ceil((1:m*n)./m);
-    g = @(a,b) f(b*h,a*h)*h^2;
+    g = @(a,b) -f(b*h,a*h)*h^2;
     gvals = g(ga,gb);
     b = (gvals+zu+zd+zl+zr)';
 endfunction
@@ -45,7 +45,7 @@ function [P,b] = genPbSparse(Z,f,h)
 
     ga = repmat(1:m,1,n);
     gb = ceil((1:m*n)./m);
-    g = @(a,b) f(b*h,a*h)*h^2;
+    g = @(a,b) -f(b*h,a*h)*h^2;
     gvals = g(ga,gb);
     b = (gvals+zu+zd+zl+zr)';
 endfunction
@@ -167,10 +167,13 @@ function CGSparseTest(m,n,maxIter,maxError)
     u = @(x,y)x*y/(m*n);
     %u = @(x,y)0;
     Z = genZ(m,n,a,b,h,u);
-    f = @(x,y)ifelse(y==(hal*h),3,0).*ifelse(x==(hal*h),3,0);
+    f = @(x,y)-ifelse(y==(hal*h),3,0).*ifelse(x==(hal*h),3,0);
+    tic;
     [A, iter, err] = PoissonCGSparse(f,Z,a,b,h,maxIter,maxError);
-    
-    printf ("iterations: %d \nerror: %e \n", iter,err);
+    t = toc;
+    printf ("\nst. iteracij: %d \n", iter);
+    printf ("napaka:         %e \n", err);
+    printf ("cas:            %e \n\n", t);
     plot(A,h,a,b);
 endfunction
 
