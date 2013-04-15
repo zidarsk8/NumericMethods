@@ -99,7 +99,7 @@ endfunction
 
 
 
-function gzTest()
+function gzTest2()
     m = 21; % stevilo vrstic znotraj matrike
     n = 21; % stevilo stolpcev znotraj matrike
     a = 0; % zacetna vrednost Y intervala
@@ -112,6 +112,32 @@ function gzTest()
 endfunction
 
 
+
+function gzTest3(m,n)
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    hal = (ceil(min(m,n)/2));
+    h = 1/hal; % korak v X in Y smeri
+    u = @(x,y)x*y/(m*n);
+    %u = @(x,y)0;
+    Z = genZ(m,n,a,b,h,u);
+    f = @(x,y)ifelse(y==(hal*h),3,0).*ifelse(x==(hal*h),3,0);
+    GausSeidelPlot(f,Z,b,a,h,50);
+endfunction
+
+
+
+function gzTest1(m,n)
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    hal = (ceil(min(m,n)/2));
+    h = 1/hal; % korak v X in Y smeri
+    u = @(x,y)0;
+    Z = genZ(m,n,a,b,h,u);
+    Z(1,:) = sin((0:m+1)*pi/(1+m));
+    f = @(x,y)-3;
+     GausSeidelPlot(f,Z,b,a,h,50);
+endfunction
 
 
 

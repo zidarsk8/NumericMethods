@@ -189,7 +189,7 @@ function sorTest(m,n,maxIter,maxError)
     plot(A,h,a,b);
 endfunction
 
-function sorTestW(m,n,a,b,h,fun,u,steps)
+function sorjTestW(m,n,a,b,h,fun,u,steps)
     Z = genZ(m,n,a,b,h,u);
     maxIter = 10000;
     maxError = 0;
@@ -219,6 +219,58 @@ function sorTestW(m,n,a,b,h,fun,u,steps)
     endfor
     
 endfunction
+
+
+function sorTestW(m,n,a,b,h,fun,u,steps)
+    Z = genZ(m,n,a,b,h,u);
+    maxIter = 10000;
+    maxError = 0;
+    [A, iter, err] = sorjw(fun,Z,a,b,h,1,maxIter,maxError);
+    iter
+    err(end)
+
+    maxIter = 50
+    f = 0;
+    t = 2;
+    for i=1:steps
+        f1 = f + (t-f)/3;
+        t1 = f + (t-f)/3*2;
+        [Af, iterf, errf] = sorw(fun,Z,a,b,h,f1,maxIter,maxError);
+        [At, titert, errt] = sorw(fun,Z,a,b,h,t1,maxIter,maxError);
+        ef = max(max(abs(A-Af)));
+        et = max(max(abs(A-At)));
+        if ef < et
+            t = t1;
+            printf("f: %.5f    t: %.5f    err: %e\n", f,t,ef);
+        else
+            f = f1;
+            printf("f: %.5f    t: %.5f    err: %e\n", f,t,et);
+        endif
+
+        fflush(stdout);
+    endfor
+    
+endfunction
+
+
+function sorjTest0(m,n,steps)
+    a = 0; % zacetna vrednost Y intervala
+    b = 0; % zacetna vrednost X intervala
+    hal = (ceil(min(m,n)/2));
+    h = 1/hal; % korak v X in Y smeri
+    u = @(x,y)0;
+    %f = @(x,y)-ifelse(y==(hal*h),3,0).*ifelse(x==(hal*h),3,0);
+    f = @(x,y)-1;
+    sorjTestW(m,n,a,b,h,f,u,steps);
+    % tic;
+    % [A, iter, err] = sorjw(f,Z,a,b,h,w,maxIter,maxError);
+    % t = toc;
+    % printf ("\niteracije:   %d \n", iter);
+    % printf ("napaka:      %e \n", err(end));
+    % printf ("cas:         %f \n\n", t);
+    % plot(A,h,a,b);
+endfunction
+
 
 
 function sorTest0(m,n,steps)
