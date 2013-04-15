@@ -26,30 +26,6 @@ function [P,b] = genPb(Z,f,h)
 endfunction
 
 
-function [P,b] = genPbSparse(Z,f,h)
-    s = size(Z);
-    m = s(1)-2; %min(s)-2;
-    n = s(2)-2; %max(s)-2;
-    P = [ zeros(1,m) ones(1,m*n-m)*-1 ; 
-          0 -repmat([ones(1,m-1) 0],1,n)(1:m*n-1) ; 
-          ones(1,m*n)*4 ; 
-          -repmat([ones(1,m-1) 0],1,n)(1:m*n-1) 0 ;
-          -ones(1,m*n-m) zeros(1,m)  ]';
-
-    zu = [Z(2:end-1,1)' zeros(1, n*m - (s(1)-2))];
-    zd = [zeros(1, n*m - (s(1)-2)) Z(2:end-1,end)'];
-    zl = zeros(1,m*n);
-    zl((1:s(1)-2:end)+s(1)-3) = Z(end,2:end-1);
-    zr = zeros(1,m*n);
-    zr((1:s(1)-2:end)) = Z(1,2:end-1);
-
-    ga = repmat(1:m,1,n);
-    gb = ceil((1:m*n)./m);
-    g = @(a,b) -f(b*h,a*h)*h^2;
-    gvals = g(ga,gb);
-    b = (gvals+zu+zd+zl+zr)';
-endfunction
-
 
 function Z = genZ(m,n,a,b,h,u)
     y = linspace (a, a + h * (m + 1), m+2);
@@ -73,64 +49,6 @@ function y = mul(A,x)
 endfunction
 
 
-function [x,iter,err] = CGSparse(A,b,maxIter,maxError)
-    x = b;
-    if norm(b) != 0 
-        r = b-mul(A,x);
-        p = r;
-        rsold = r'*r;
-        for iter = 1:maxIter
-            Ap = mul(A,p);
-            alpha = rsold/(p'*Ap);
-            x = x+alpha*p;
-            r = r-alpha*Ap;
-            rsnew = r'*r;
-            err = sqrt(rsnew);
-            if err<maxError
-                  break;
-            endif
-            p = r+rsnew/rsold*p;
-            rsold = rsnew;
-        endfor
-    endif
-endfunction
-
-function x = CG(A,b)
-    %x = P\b
-    x = b;
-    r = b-A*x;
-    p = r;
-    rsold = r'*r;
-    for i = 1:10^6
-        Ap = A*p;
-        alpha = rsold/(p'*Ap);
-        x = x+alpha*p;
-        r = r-alpha*Ap;
-        rsnew = r'*r;
-        if sqrt(rsnew)<1e-10
-              break;
-        endif
-        p = r+rsnew/rsold*p;
-        rsold = rsnew;
-    endfor
-endfunction
-
-function Z = PoissonCG(f,Z,x,y,h,maxIter,maxError)
-    s = size(Z);
-    [P,b] = genPb(Z,f,h);
-    Z(2:end-1,2:end-1) = reshape(CG(P,b),s-2);
-    plot(Z,h,y,x);
-endfunction
-
-
-function [Z, iter, err] = PoissonCGSparse(f,Z,x,y,h,maxIter,maxError)
-    s = size(Z);
-    [P,b] = genPbSparse(Z,f,h);
-    [x, iter, err] = CGSparse(P,b,maxIter,maxError);
-    Z(2:end-1,2:end-1) = reshape(x,s-2);
-endfunction
-
-
 function Z = BuiltIn(f,Z,x,y,h,i)
     s = size(Z);
     [P,b] = genPb(Z,f,h);
@@ -138,44 +56,10 @@ function Z = BuiltIn(f,Z,x,y,h,i)
     plot(Z,h,y,x);
 endfunction
 
-function [Z,iter,err] = SOR(f,Z,x,y,h,maxIter,maxError)
-    s = size(Z);
-    prev = rand(s);
-    iter = 0;
-    err = maxError + 1;
-    w = 2 / (1 + pi/s(1));
-    while iter++ < maxIter && err > maxError
-        for a=2:s(1)-1
-            for b=2:s(2)-1
-                Z(a,b) = (1-w)*Z(a,b) + w * ( Z(a+1,b)+Z(a-1,b)+Z(a,b+1)+Z(a,b-1) + h^2 * f(x+(b-1)*h,y+(a-1)*h) )/4;
-            endfor
-        endfor
-        err = max(max(abs(Z-prev)));
-        prev = Z;
-    endwhile
-endfunction
 
 
 
 
-
-function CGSparseTest(m,n,maxIter,maxError)
-    a = 0; % zacetna vrednost Y intervala
-    b = 0; % zacetna vrednost X intervala
-    hal = (ceil(min(m,n)/2));
-    h = 1/hal; % korak v X in Y smeri
-    u = @(x,y)x*y/(m*n);
-    %u = @(x,y)0;
-    Z = genZ(m,n,a,b,h,u);
-    f = @(x,y)-ifelse(y==(hal*h),3,0).*ifelse(x==(hal*h),3,0);
-    tic;
-    [A, iter, err] = PoissonCGSparse(f,Z,a,b,h,maxIter,maxError);
-    t = toc;
-    printf ("\nst. iteracij: %d \n", iter);
-    printf ("napaka:         %e \n", err);
-    printf ("cas:            %e \n\n", t);
-    plot(A,h,a,b);
-endfunction
 
 
 
@@ -213,17 +97,6 @@ function gzTest2()
     GausSeidelPlot(f,Z,b,a,h,50);
 endfunction
 
-function CGTest()
-    m = 50; % stevilo vrstic znotraj matrike
-    n = 60; % stevilo stolpcev znotraj matrike
-    a = 0; % zacetna vrednost Y intervala
-    b = 0; % zacetna vrednost X intervala
-    h = 1/25; % korak v X in Y smeri
-    u = @(x,y)x*y/1000;
-    Z = genZ(m,n,a,b,h,u);
-    f = @(x,y)ifelse(y==(m./2.*h),3,0).*ifelse(x==(n./2.*h),3,0);
-    PoissonCG(f,Z,a,b,h,100,1e-6);
-endfunction
 
 
 function gzTest()
