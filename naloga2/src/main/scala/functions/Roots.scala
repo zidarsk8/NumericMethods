@@ -17,7 +17,7 @@ object Roots {
         c
       }
     }
-    step(10000, from, f(from), to, f(to))
+    step(150, from, f(from), to, f(to)) // to 7e-46
   }
 
 
