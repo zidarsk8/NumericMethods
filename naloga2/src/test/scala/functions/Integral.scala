@@ -22,10 +22,10 @@ class IntegralTest extends FunSuite with ShouldMatchers{
   }
 
   test("GaussHermite"){
-    gaussHermite(3)(x=>x*x) should be (BigDecimal(0.886226925452757) +- eps)
-    gaussHermite(5)(_ pow 3) should be (BigDecimal(0) +- eps)
+    gaussHermite(3)(x=>x*x) should be (BigDecimal("0.886226925452757") +- eps)
+    gaussHermite(5)(_ pow 3) should be (BigDecimal("0") +- eps)
     gaussHermite(5)(_ pow 4) should be (BigDecimal("1.3293403881791370204736") +- eps) 
-    gaussHermite(10)(x => x + pow(sin(x.toDouble),2)) should be (BigDecimal(0.560202) +- 1e-6)
+    gaussHermite(10)(x => x + pow(sin(x.toDouble),2)) should be (BigDecimal("0.560202") +- 1e-6)
   }
 
 }
