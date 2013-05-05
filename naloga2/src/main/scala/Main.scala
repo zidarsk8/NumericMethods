@@ -6,16 +6,22 @@ object Main{
 
   def main(args: Array[String]){
     
-    println(upanje( x=> x, 2, 2, 8))
+    def f(x:Double) = x*x*x
+    val mu = 1
+    val sigma = 2
+
+    println(upanje( f, mu, sigma, 8))
+
+    def fff(x:Double) = f(x) * exp(-pow((x-mu)/sigma,2))
+    val n = 5d
+    val x = (-n to n by 0.01).toVector
+    val y = Vector(x.map(fff(_)))
+    plotGraph(x,y)
     
   }
 
-  def upanje(f: Double => Double, mu:Double, sigma:Double,n:Int):Double = {
-    def fff(x:Double) = f(x) * exp(-pow((x-mu)/sigma,2))
-    def fTran(x:Double) = (sigma * f( (x*sigma) +mu ))
-    
-
-    gaussHermite(5)(x => sigma * f(x.toDouble * sigma + mu) )
+  def upanje(f: Double => Double, mu:Double, sigma:Double,n:Int) = {
+    gaussHermite(n)(x => sigma * f(x.toDouble * sigma + mu) ).toDouble
   }
 
   def plotGraph(x:Vector[Double], y: Vector[Vector[Double]]){
