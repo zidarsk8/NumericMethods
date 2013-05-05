@@ -21,3 +21,4 @@ resolvers ++= Seq(
             // if you want to use snapshot builds (currently 0.3-SNAPSHOT), use this.
             "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
+
