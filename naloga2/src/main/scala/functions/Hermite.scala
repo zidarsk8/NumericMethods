@@ -32,10 +32,11 @@ object Hermite {
         (if (n%2==0) l else BigDecimal(0)::l):::List(bisection(Hermite(n),r.last))
       }
     }
-    val r = top(n)
     if (n<1) List()
-    else if (n%2==0) r.reverse:::r
-    else r.reverse:::r.tail
+    else {
+      val r = top(n)
+      r.reverse.map(-_):::(if (n%2==0) r else r.tail)
+    }
   }
 
 }
