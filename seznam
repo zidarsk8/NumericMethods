@@ -1,0 +1,1678 @@
+
+	 
+
+Linearna algebra
+
+	Direktno vstavljanje		2.2.1
+	Obratno vstavljanje		2.2.2
+	Gaussova eliminacija 		2.3.1
+	LU Razcep			2.4.1
+	 
+	LU razcep z delnim pivotiranjem	2.5.1 
+	Razcep Choleskega		2.6.1 
+	Iterativno izboljsevanje	2.7.1
+	QR razcep			2.7.0qr 
+	Jacobijeva iteracija		2.8.1 
+	Gauss-Sedlova iteracija		2.8.2
+	metoda SOR			2.8.0sor
+	Konjugirani gradienti		CG 
+	Potencna metoda	(lastne vr) 	potencna 
+
+
+Resevanje nelinearnih enacb
+
+	Bisekcija			3.2.1 
+	Metoda regDLa falsi		3.3.1 
+	Sekantna metoda			3.3.2 
+	Tangentna metoda		3.4.1
+	Metoda fiksne tocke		3.5.1
+
+
+Interpolacija in aproksimacija
+
+	Lagrangeov interpolacijski polinom	4.2.1
+	Newtonov interpolacijski polinom	4.3.1
+	Izracun Newtonovega  polinoma		NIP 
+	Algoritem 4.3.2 ?
+	Napaka polinomske interpolacije		4.5.2 
+	metoda najmanjsih kvadratov		4.6.1
+	Koeficienti ortogonalnih polinomov	4.7.1
+	 
+
+Numericna integracija
+
+	Trapezna metoda				5.2.1
+	Simpsonova metoda			5.3.1
+	Vrednosti ortogonalnih polinomov	5.3.2 
+	Izracun singDLarnega integrala		5.4.1
+	Trapezna metoda s kontrolo koraka	5.5.1
+	Adaptivna trapezna metoda		5.5.2
+	Rombergova metoda			5.6.1
+	Gauss-Legandrova metoda			Gauss-Legendre, 
+
+Diferencialne enacbe
+
+	Eulerjeva metoda			6.2.1 
+	Adams-Bashforthova metoda 4. reda	6.3.1 
+	ABM metoda prediktor-korektor 4 	6.3.2 
+	Metoda Runge-Kutta 4. reda		6.4.1 
+	Metoda DOPRI5				6.5.1 
+	ABM metoda prediktor-korektor 4		6.6.1 
+	Strelska metoda				6.9.1 
+	Robni problem - koncne diference	
+			koncne diference, 
+			Demo koncne diference, 
+			f 6.9.2, g 6.9.2, h 6.9.2 
+	Robni problem - spektralna metoda	
+			spektralna metoda, 
+			Odvod polinoma Cebiseva, 
+			Drugi odvod polinoma Cebiseva, 
+			Demo spektralna metoda, 
+			f 6.9.3, g 6.9.3, h 6.9.3 
+
+
+
+
+
+
+
+
+
+
+	Direktno vstavljanje		2.2.1
+
+
+#####################################################
+
+function x = alg221(A,b)
+    x = zeros(length(b),1);
+    for i = 1:length(b)
+        x(i) = (b(i) - A(i,1:i-1)*x(1:i-1) ) / A(i,i);
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Obratno vstavljanje		2.2.2
+
+
+#####################################################
+
+function x = alg222 (A,b)
+    x = zeros(length(b),1);
+    for i = length(b):-1:1
+        x(i) = (b(i) - A(i,i+1:end)*x(i+1:end) ) / A(i,i);
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Gaussova eliminacija 		2.3.1
+
+A = [ 3 4 1 ; 5 5 1 ; 2 2 4 ]
+b=[ 6 6 10 ]'
+[AA,bb] = alg231(A,b)
+x = alg222 (AA,bb)
+A*x-b
+
+#####################################################
+
+function [A,b] = alg231(A,b)
+    for i = 1:length(A)
+        for j = i+1:length(A)
+            faktor = A(j,i)/A(i,i);
+            A(j,:) = A(j,:) - A(i,:) .* faktor;
+            b(j) = b(j) - b(i) * faktor;
+        end
+    end
+end
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	LU Razcep			2.4.1
+
+A = [ 3 4 1 ; 5 5 1 ; 2 2 4 ]
+b=[ 6 6 10 ]'
+[L, U] = alg241(A)
+% L U x = b   ->  L y = b   in   U x =y
+y = alg221(L,b);
+x = alg222(U,y)
+max(A*x-b)
+
+#####################################################
+
+function [L,A] = alg241(A)
+    L = eye(size(A));
+    for i = 1:length(A)
+        for j = i+1:length(A)
+            L(j,i) = A(j,i)/A(i,i);
+            A(j,:) = A(j,:) - A(i,:) .* L(j,i);
+        end
+    end
+end
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	LU razcep z delnim pivotiranjem	2.5.1 
+
+A = [ 6 2 2 ; 2 1 3 ; 1 2 -1 ]
+b=[ -2 1 0 ]'
+
+[L, U, P] = alg251(A)
+% L U x = P b   ->  L y = P b   in   U x = y
+y = alg221(L,P*b)
+x = alg222(U,y)
+
+A*x-b
+
+
+#####################################################
+
+function [L,A,P] = alg251(A)
+    P = L = eye(size(A));
+    U(1,:) = A(1,:);
+    
+    for i = 1:length(A)
+        [_,p] = max(abs(A(i:end,i)));
+        p = p+i-1;
+        tmp = A(i,:); A(i,:) = A(p,:); A(p,:) = tmp;
+        tmp = P(i,:); P(i,:) = P(p,:); P(p,:) = tmp;
+        for j = i+1:length(A)
+            L(j,i) = A(j,i)/A(i,i);
+            A(j,:) = A(j,:) - A(i,:) .* L(j,i);
+        end
+    end
+end
+
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Razcep Choleskega		2.6.1 
+
+
+A = [ 2 -1  0  0
+     -1  2 -1  0
+      0 -1  2 -1
+      0  0 -1  2 ]
+
+b = [1 0 0 1]'
+R = alg261(A)
+y = alg221(R',b)
+x = alg222(R,y)
+
+A*x-b
+
+#####################################################
+
+function R = alg261(A)
+    R = zeros(size(A));
+    for i = 1: length(A)
+        R(i,i) = sqrt(A(i,i));
+        r = A(i,i+1:end) / R(i,i);
+        R(i,i+1:end) = r;
+        A(i+1:end,i+1:end) = A(i+1:end,i+1:end) - r'*r;
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Iterativno izboljsevanje	2.7.1
+
+n = 100
+A = ceil(rand(n)*100);
+b = ceil(rand(n,1)*200);
+
+[L, U] = alg241(A);
+y = alg221(L,b);
+x = alg222(U,y);
+% x = b;
+for i=1:5
+    x = alg271(A,L,U,x,b);
+    max(A*x-b)
+end
+
+#####################################################
+
+function x = alg271(A,L,U,x,b)
+    r = (A*x-b);
+    max(r)
+
+    y = alg221(L,r);
+    e = alg222(U,y);
+
+    x = x - e;
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	QR razcep			2.7.0qr 
+
+A = [
+   2   3   5   5
+   4   2   4   3
+   1   4   2   1
+   2   3   2   1
+]
+
+[U, R] = alg270qr(A)
+
+#####################################################
+
+function [U,A] = alg27qr(A)
+    U = zeros(size(A))
+    for i=1:length(A)-1
+        u = A(i:end,i);
+        u(1) = u(1) + sign(u(1))*norm(u);
+        U(i:end,i) = u;
+        A(i:end,i:end) = A(i:end,i:end) - 2*u* (u'*A(i:end,i:end)/(u'*u));
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Jacobijeva iteracija		2.8.1 
+
+A = [2 -1 0 0 ; -1 2 -1 0 ; 0 -1 2 -1 ; 0 0 -1 2];
+b = [1 0 0 1]';
+x0 = [0 0 0 0]';
+x = alg281(A,x0,b,5)
+
+#####################################################
+
+function x = alg281(A,x0,b,n)
+    x = x0;
+    for i = 1:n
+        for j = 1:length(x)
+            x(j) = x(j) + 1/A(j,j) * (b(j) - A(j,:)*x0);
+        end
+        x0 = x;
+        x'
+    end
+
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Gauss-Sedlova iteracija		2.8.2
+
+A = [2 -1 0 0 ; -1 2 -1 0 ; 0 -1 2 -1 ; 0 0 -1 2];
+b = [1 0 0 1]';
+x0 = [0 0 0 0]';
+x = alg282(A,x0,b,5)
+
+#####################################################
+
+function x = alg281(A,x,b,n)
+    for i = 1:n
+        for j = 1:length(x)
+            x(j) = x(j) + 1/A(j,j) * (b(j) - A(j,:)*x);
+        end
+        x'
+    end
+
+end
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	metoda SOR			2.8.0sor
+
+% TODO: all
+A = [2 -1 0 0 ; -1 2 -1 0 ; 0 -1 2 -1 ; 0 0 -1 2];
+b = [1 0 0 1]';
+x0 = [0 0 0 0]';
+x = alg28sor(A,x0,b,5,1.1)
+
+
+#####################################################
+
+function x = alg28sor(A,x,b,n,w)
+    for i = 1:n
+        for j = 1:length(x)
+            x(j) = x(j) + 1/A(j,j) * (b(j) - A(j,:)*x);
+        end
+        x'
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Konjugirani gradienti		CG 
+
+
+N = 100;
+n = 10;
+epsilon = 1e-8;
+AA = rand(n);
+b = rand(n,1);
+A = AA'*AA;
+x = b;
+
+
+#####################################################
+
+% Resevanje sistema linearnih enacb
+% Metoda konjugiranih gradientov - Datta algoritem 5.4.3
+% 
+% Podatki:
+%               A            Kvadratna matrika n x n
+%               b            desna stran sistema
+%               x            Zacetni priblizek
+%               epsilon      zazelena natancnost priblizka
+%               N            Zgornja meja za stevilo iteracij
+%
+% Rezultat:
+%               x            resitev sistema
+
+r = b - A*x;
+p = r;
+for i = 1:N
+  w = A*p;
+  alpha = norm(r)^2/(p'*w);
+  x = x + alpha*p;
+  rn = r - alpha*w;
+  if norm(rn)<epsilon, break; endif;
+  beta = (norm(rn)/norm(r))^2;
+  r = rn;                    
+  p = r + beta*p;
+end
+
+x
+
+r = A*x - b;
+maxerr = max(abs(r))
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Potencna metoda	(lastne vr) 	potencna 
+
+% Potencna metoda - test algoritma
+%
+% Podatki:
+
+q=rand(11);
+A=q*diag([0.999 1 1./(2:10)])*inv(q);
+%A = rand(100) + diag(1:100);
+epsilon = 1e-10;
+N = 50;
+
+
+#####################################################
+
+% Racunanje lastnih vrednosti in lastni vektorjev s potencno metodo
+% Potencna metoda - Datta, Algoritem 8.5.1
+% 
+% Podatki:
+%               A            Kvadratna matrika n x n
+%               epsilon      Konvergencni kriterij
+%               N            Zgornja meja za stevilo iteracij
+%
+% Rezultat:
+%               x            lastni vektor
+%               lambda       lastna vrednost
+
+
+[m,n] = size(A);
+if n!=m
+     error("Matrika A ni kvadratna")
+endif
+x = rand(n,1);
+A2 = A*A;
+
+ls = max(x);
+for i = 1:N
+   x = A2*x;
+   ln = max(x);
+   x = x/ln;
+   if (abs(ln-ls)<epsilon)
+      printf("# iteracij "), i, break 
+   endif
+   ls = ln;
+end
+lambda = max(A*x);
+
+
+[xx,l] = eig(A);
+lambda,ll=diag(l)
+
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Bisekcija			3.2.1 
+
+% x1 = 0.21633913852038680528263187
+% x2 = 1.9665866732589687419000391
+
+f = @(x) 3*x^2  - 7 * atan(x) - 3*x +2;
+e = 1e-14;
+
+[x,iter] = alg321(f,1,3,e)
+f(x)
+
+#####################################################
+
+function [c, iter] = alg321(f,a,b,e)
+    c = (a+b)/2;
+    fc = f(c);
+    fa = f(a);
+    iter = 0;
+    while abs(fc) > e && iter < 1000 && (b-a)>eps
+        if fa*fc < 0
+            b = c;
+        else
+            a = c;
+        end
+        c = (a+b)/2;
+        fc = f(c);
+        iter++;
+    end
+end
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Metoda regDLa falsi		3.3.1 
+
+f = @(x) 3*x^2  - 7 * atan(x) - 3*x +2;
+e = 1e-14;
+
+[x,iter] = alg331(f,1,3,e)
+f(x)
+
+#####################################################
+
+function [c, iter] = alg331(f,a,b,e)
+    fa = f(a);
+    fb = f(b);
+    c = a - fa * (b-a)/(fb-fa);
+    fc = f(c);
+    iter = 0;
+    while abs(fc) > e && iter < 1000 && (b-a)>eps
+        if fa*fc < 0
+            b = c;
+            fb = fc;
+        else
+            a = c;
+            fa = fc;
+        end
+        c = a - fa * (b-a)/(fb-fa);
+        fc = f(c);
+        iter++;
+    end
+end
+
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Sekantna metoda			3.3.2 
+
+f = @(x) 3*x^2  - 7 * atan(x) - 3*x +2;
+e = 1e-14;
+
+[x,iter] = alg332(f,1,3,e)
+f(x)
+
+#####################################################
+
+function [c, iter] = alg332(f,a,b,e)
+    fa = f(a);
+    fb = f(b);
+    iter = 0;
+    while abs(fa) > e && iter < 1000
+        c = a - fa * (b-a)/(fb-fa);
+        a = b;
+        fa = fb;
+        b = c;
+        fb = f(b);
+        iter++;
+    end
+end
+
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Tangentna metoda		3.4.1
+
+f = @(x) 3*x^2  - 7 * atan(x) - 3*x +2;
+df = @(x)  6*x - 7 / (x^2+1) - 3;
+e = 1e-14;
+
+[x,iter] = alg341(f,df,5,e)
+f(x)
+[x,iter] = alg341(f,df,-5,e)
+f(x)
+[x,iter] = alg341(f,df,1,e)
+f(x)
+
+#####################################################
+
+function [a,iter] = alg341(f,df,a,e)
+    iter = 0;
+    fa = f(a);
+    while abs(fa) > e && iter < 10
+        a = a - fa/ df(a);
+        fa = f(a);
+        iter++;
+    end
+    if abs(fa) > e
+        a = NaN;
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Metoda fiksne tocke		3.5.1
+
+f = @(x) -5*x^2+0.1;
+g = @(x) -5*x^2+x+0.1;
+e = 1e-14;
+
+[x,iter] = alg351(g,0,e)
+f(x)
+
+
+#####################################################
+
+function [x,iter] = alg351(g,x,e)
+    iter = 0;
+    gx = g(x);
+    while abs(g(x)-x) > e && iter < 1000
+        x = g(x);
+        iter++;
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Lagrangeov interpolacijski polinom	4.2.1
+
+X = (0:3)/10
+fx = cos(X)
+
+alg421(fx,X,0.15)
+
+#####################################################
+
+function s = alg421(F,X,x)
+    s = 0;
+    for i = 1:length(F)
+        s = s + F(i) * l(X,x,i);
+    end
+end
+
+function a = l(X,b,i)
+    a = 1;
+    for j = 1:length(X)
+        if i!=j
+            a = a * ( ( b-X(j) ) / ( X(i)-X(j) ) );
+        end
+    end
+end 
+
+#####################################################
+#####################################################
+#####################################################
+
+	Newtonov interpolacijski polinom	4.3.1
+
+% Newtonov interpolacijski polinom - uporaba algoritma 4.3.1
+% Vrednost Newtonovega interpolacijskega polinoma
+
+x = [1       1.1     1.065270548359763 ];
+f = [0.94608 1.02869 1.00035387781083  ];
+t = 2;
+
+[b,a] = alg431(x,f,t)
+
+p = diag(a)
+
+xx = [0:0.1:2];
+y = nip(p,1,x,xx);
+y = nip(p,1,x,1)
+y = nip(p,1,x,1.1)
+y = nip(p,1,x,1.065270548359763)
+
+
+% plot(xx,y)
+
+#####################################################
+
+function [p, a] = alg431(x,f,t)
+    % 		x		interpolacijske tocke
+    %		f 		interpolacijske vrednosti
+    %		t		tocka, v kateri racunamo vrednost
+    % Rezultat:
+    %		p		vrednost interpolacijskega polinoma v tocki t
+
+    [ans,n] = size(x);	% stevilo interpolacijskih tock
+    [ans,m] = size(f);		% stevilo interpolacijskih vrednosti
+
+    if n==m
+        n = n-1;
+        a = zeros(n+1,n+1); 
+        a(:,1) = f';
+        p = a(1,1);		 	  
+        u = 1;
+        for i = 2:n+1
+            u = u.*(t - x(i-1));
+            for j=2:i
+                a(i,j) = (a(i,j-1) - a(i-1,j-1))/(x(i) - x(i-j+1));
+            end
+            p = p + a(i,i)*u;
+        end
+    else
+        error('Napacno stevilo podatkov')
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Izracun Newtonovega  polinoma		NIP 
+
+
+#####################################################
+
+function y = nip(p,n,c,x)
+    % Algoritem za izracun vrednosti Newtonovega interpolacijskega polinoma
+    % Podatki:
+    %		p		koeficienti Newtonovega interpolacijskega polinoma
+    %		n 		stopnja interpolacijskega polinoma
+    %		c		interpolacijske tocke
+    %		x		tocka, v kateri racunamo vrednost
+    % Rezultat:
+    % 		y		vrednost polinoma
+    % y = p(1) + p(2)*(x - c(1))
+    %			  + p(3)*(x - c(1))*(x - c(2)) + ...
+    %			  + p(n+1)*(x - c(1))*(x - c(2))*...*(x - c(n))
+
+    y = p(n+1);
+    for i = n:-1:1
+        y = y.*(x - c(i)) + p(i);
+    end
+
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Algoritem 4.3.2 ?
+
+x = [1 3 6 10]
+f = [3 2 6 1]
+[ans,n] = size(x)
+[ans,m] = size(f);
+if n<m, error('Manjkajo abscise'), end
+
+a = zeros(n,n); a(:,1) = f';
+p = a(1,1);
+u = t-x(1);
+for i = 2:n
+   for j = 2:i
+      a(i,j) = (a(i,j-1) - a(i-1,j-1))/(x(i) - x(i-j+1));
+   end
+   p = p + a(i,i)*u;
+   u = u*(t-x(i));
+end
+p
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	metoda najmanjsih kvadratov		4.6.1
+
+% Metoda najmanjsih kvadratov - uporaba algoritma 4.6.1
+
+x = [1:10];
+f = [5.5 7 12.5 13 17 19.5 24.5 26 27.5 32.5];
+[n,m] = size(x);
+k = 6;
+
+p = alg461(x,f,n,k)
+
+fp = polyval(p,x);
+sq = sum((f-fp).^2);
+
+hold off
+plot(x,f,'r*');
+hold on
+plot(x,fp,'g');
+
+#####################################################
+
+function p = alg461(x,f,n,k)
+    % Metoda najmanjsih kvadratov - algoritem 4.6.1
+    % Aproksimacija funkcije y = f(x), znane v tockah x
+    % Podatki:
+    %       x       vektor abscis
+    %       f       funkcijske vrednosti
+    %       n       stevilo vhodnih tock - dolzini vektorjev x in f
+    %       k       stopnja aproksimacijskega polinoma
+    % Rezultat:
+    %       p       koeficienti aproksimacijskega polinoma
+
+    for i = 1:2*k+1
+        y(i) = sum(x.^(i-1));
+    end
+    for i = 1:k+1
+        for j = 1:k+1
+            A(i,j) = y(i+j-1);    % koeficienti normalnega sistema
+        end
+        b(i) = sum(f.*x.^(i-1));      % desne strani
+    end
+    p = flipud(A\b');
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Koeficienti ortogonalnih polinomov	4.7.1
+
+% Ortogonalni polinomi - uporaba algoritma 4.7.1
+
+x = [-2:0.2:2];
+k = 5;
+
+[a b] = alg471(x,k)
+
+xx = [-2:0.01:2];
+[m,nn] = size(xx);
+tt = zeros(k,nn);
+tt(1,:) = ones(1,nn);
+tt(2,:) = xx - sum(xx)/n;
+for i = 2:k
+   tt(i+1,:) = (xx(:) - a(i+1))'.*tt(i,:) - b(i)'.*tt(i-1,:);
+end
+
+#####################################################
+
+function [a,b] = alg471(x,k)
+    % Koeficienti ortogonalnih polinomov - algoritem 4.7.1
+    % Koeficienti rekurzivne formule
+    %  t_{n+1}(x) = (x - a_{k+1})t_k(x) - b_k t_{k-1}(x)
+    %
+    % Podatki:
+    %       x       mnozica (med seboj razlicnih) abcis
+    %       k       maksimalna stopnja polinoma iz ortogonalnega zaporedja
+    % Rezultati:
+    %       a       koeficienti a rekurzivne formule         
+    %       b       koeficienti b rekurzivne formule         
+
+    [m,n] = size(x)
+    t = zeros(k,n);
+    a = zeros(k,1);
+    b = zeros(k,1);
+    t(1,:) = ones(1,n);
+    t(2,:) = x - sum(x)/n;
+    for i = 2:k
+       a(i+1) = (x*(t(i,:).*t(i,:))')/(t(i,:)*t(i,:)')';
+       b(i) = t(i,:)*t(i,:)'/(t(i-1,:)*t(i-1,:)');
+       t(i+1,:) = (x(:) - a(i+1))'.*t(i,:) - b(i)'.*t(i-1,:);
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Trapezna metoda				5.2.1
+
+% Trapezna metoda - uporaba algoritma 5.2.1
+
+a = 3;
+b = 6;
+n = 1000;
+
+f = @(x) sqrt(x-2);
+
+alg521(f,a,b,n)
+
+#####################################################
+
+function T = alg521(f,a,b,n)
+    % Trapezna metoda - algoritem 5.2.1
+    % Racunanje vrednosti dolocenega integrala
+    % Podatki:
+    %       f       zvezna funkcija
+    %       a       zacetna tocka intervala
+    %       b       koncna tocka intervala
+    %       n       stevilo podintervalov
+    % Rezultat:
+    %       c       priblizek za vrednost integrala
+
+    h = (b-a)/n;
+    T = (f(a)+f(b))/2;
+    for i = 1:n-1
+       T = T + f(a+i*h);
+    end
+    T = T*h;
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Simpsonova metoda			5.3.1
+
+% Trapezna metoda - uporaba algoritma 5.2.1
+
+a = 3;
+b = 6;
+n = 10;
+
+f = @(x) sqrt(x-2);
+
+alg531(f,a,b,n)
+
+#####################################################
+
+function S = alg531(f,a,b,n)
+    % Simpsonova metoda - algoritem 5.3.1
+    % Racunanje vrednosti dolocenega integrala
+    % Podatki:
+    %       f       zvezna funkcija
+    %       a       zacetna tocka intervala
+    %       b       koncna tocka intervala
+    %       n       stevilo podintervalov
+    % Rezultat:
+    %       c       priblizek za vrednost integrala
+
+    h = (b-a)/n/2;
+    S = (f(a)+f(b)+4*f(a+h));
+    for i = 1:n-1
+        S = S + 2*f(a+2*i*h) + 4*f(a+2*i*h+h);
+    end
+    S = S*h/3
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Vrednosti ortogonalnih polinomov	5.3.2 
+
+
+#####################################################
+
+% Vrednosti ortogonalnih polinomov
+
+for p = 0:k
+   d(p+1) = (x.^p*f')/(t(p+1,:)*t(p+1,:)');
+end
+
+c(k+1) = d(k+1)
+c(k) = d(k) + c(k+1)*(xx - a(k+2))
+if k==1
+else
+   for j = k-1:-1:1
+      c(j) = d(j) + c(j+1)*(xx - a(j+1)) - c(j+2)*b(j);
+   end
+end
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Trapezna metoda s kontrolo koraka	5.5.1
+
+% Trapezna metoda s kontrolo koraka - uporaba algoritma 5.5.1
+
+a = 3;
+b = 6;
+n = 5;
+epsilon = 1e-3;
+f = @(x) sqrt(x-2);
+
+T = alg551(f,a,b,n,epsilon)
+
+#####################################################
+
+function T = alg551(f,a,b,N,epsilon)
+    % Trapezna metoda s kontrolo koraka - algoritem 5.5.1
+    % Racunanje vrednosti dolocenega integrala
+    % Podatki:
+    %       fzvezna funkcija
+    %       a           zacetna tocka intervala
+    %       b           koncna tocka intervala
+    %       N           maksimalno stevilo razpolavljanj
+    %       epsilon zahtevana natancnost rezultata
+    % Rezultat:
+    %       T       priblizek za vrednost integrala
+
+    e = 2*epsilon;
+    m = 0;
+    h = (b-a);
+    T = h*(f(a)+f(b))/2;
+    while (m<N)*(e>epsilon)
+       m=m+1;
+       h = h/2;
+       k = 2^(m-1);
+       s = 0;
+       for i = 1:k
+             s = s + f(a+(2*i-1)*h);
+       end
+       e = s*h-T/2;
+       T = T + e;
+    end
+    if abs(e)>epsilon
+       T = NaN;
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Adaptivna trapezna metoda		5.5.2
+
+% Trapezna metoda s kontrolo koraka - uporaba algoritma 5.5.1
+
+a = 3;
+b = 6;
+n = 5;
+epsilon = 1e-3;
+f = @(x) sqrt(x-2);
+
+[I H X] = alg552(f,a,b,n,epsilon,1)
+
+#####################################################
+
+function [I H X] = alg552(f,a,b,N,epsilon,sigma)
+    % Adaptivna trapezna metoda - algoritem 5.5.2
+    % Racunanje vrednosti dolocenega integrala
+    % Podatki:
+    %       f        zvezna funkcija
+    %       a           zacetna tocka intervala
+    %       b           koncna tocka intervala
+    %       N           maksimalno stevilo razpolavljanj
+    %       epsilon zahtevana natancnost rezultata
+    %       sigma   varnostni koeficient pri izbiri koraka
+    % Rezultat:
+    %       I       priblizek za vrednost integrala
+    X = [];
+    H = [];
+    sigma = 1;
+    x = a;
+    I = 0;
+    h = (b-a);
+    fa = f(a);
+    fb = f(a+h);
+    while x<b
+       fb2 = f(x+h/2);
+       T1 = h*(fa+fb)/2;            % Najprej z osnovnim korakom
+       T2 = T1/2 + h*fb2/2;     % Ponovno, s polovicnim korakom
+       if abs(T1 - T2)/3 < h*epsilon/(b-a)
+          x = x + h;                % Rezultat sprejet
+          I = I + T2;               % Pristejemo delni rezultat     
+          fa = fb;
+          h = sigma*sqrt(h^3*3*epsilon/abs(T1-T2)/(b-a));   % novi korak
+          if x+h > b                % Ali smo ze blizu konca?
+             h = b - x;
+          end
+          fb = f(x+h);
+       else                         % Rezultat zavrnjen
+          h = h/2;                  % Razpolovimo korak
+          fb = fb2;             % Vrednost v desni tocki
+       end,H = [H h];X = [X x];
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Rombergova metoda			5.6.1
+
+%  Rombergova metoda - uporaba algoritma 5.6.1
+
+a = 3;
+b = 6;
+k = 6;
+f = @(x) sqrt(x-2);
+
+T = alg561(f,a,b,k)
+
+E = tril(T - 14/3)
+
+#####################################################
+
+function T = alg561(f,a,b,k)
+    % Rombergova metoda - algoritem 5.6.1
+    % Racunanje vrednosti dolocenega integrala
+    % Podatki:
+    %       f        zvezna funkcija
+    %       a           zacetna tocka intervala
+    %       b           koncna tocka intervala
+    %       k           stevilo razpolavljanj koraka
+    % Rezultat:
+    %       T           Rombergova tabela
+
+    T = zeros(k+1,k+1);
+    h = (b-a);
+    T(1,1) = h*(f(a) + f(b))/2;
+    for m = 2:k+1
+       h = h/2;
+       T(m,1) = T(m-1,1)/2;
+       s = 0;
+       for i = 1:2^(m-2)
+          s = s + f(a + (2*i-1)*h);
+       end
+       T(m,1) = T(m,1) + h*s;
+       for n=2:m
+          T(m,n) = (4^(n-1)*T(m,n-1)-T(m-1,n-1))/(4^(n-1)-1);
+       end
+    end
+end
+
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Gauss-Legandrova metoda			Gauss-Legendre, 
+
+% Gauss-Legenreova metoda - uporaba algoritma alggausslegendre
+
+a = 3;
+b = 6;
+n = 3;
+
+alggausslegendre
+
+
+#####################################################
+
+% Gauss-Legendre kvadraturne formule
+% Racunanje vrednosti dolocenega integrala
+% Podatki:
+% 		fgl	zvezna funkcija
+%		a		zacetna tocka intervala
+%		b		koncna tocka intervala
+%       k       stevilo abscis, formula reda 2k, k<= 4
+%		n		stevilo podintervalov
+% Rezultat:
+%		T		priblizek za vrednost integrala
+
+x = [0 0 0 0
+	 -0.577350269189626 0.577350269189626 0 0
+	 -0.774596669241483 0 0.774596669241483 0 
+	 -0.861136311594053 -0.339981043584856 0.339981043584856 0.861136311594053]';
+w = [2 0 0 0
+	 1 1 0 0
+	 5/9 8/9 5/9 0
+	 0.347854845137454 0.652145154862546 0.652145154862546 0.347854845137454];
+h = (b-a)/n;
+T = 0;
+   for i = 1:n
+T = T + w(k,:)*fgl(a+(i-0.5+x(:,k)/2)*h);
+   end
+T = T*h/2;
+
+
+#####################################################
+#####################################################
+#####################################################
+
+	Eulerjeva metoda			6.2.1 
+
+% Adams-Bashforthova metoda 4. reda - Uporaba algoritma 6.3.1
+
+N = 10;
+h = 1/N;
+x0 = 0; 
+y0 = 2;
+
+f = @(x,y) -y+1
+
+[X Y] = alg621(f,x0,y0, N,h );
+
+z = 1 + exp(-X);
+hold off
+plot(X,Y,'y*',X,z,'g')
+    xlabel('x')
+    ylabel('Num. resitev (rumena) in tocna resitev (zelena)')
+pause
+plot(X,Y-z)
+    ylabel('globalna napaka')
+    xlabel('x')
+
+#####################################################
+
+function [Y X] = alg621(f,x0,y0,N,h)
+    % Eulerjeva metoda - algoritem 6.2.1
+    % Racunanje resitve diferencialne enacbe
+    % Podatki:
+    %       f621        desna stran diferencialne enacbe
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       N           stevilo korakov
+    %       h           dolzina koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    x = x0; 
+    y = y0;
+    Y = y; 
+    X = x;
+
+    for i = 1:N
+       y = y + h*f(x,y);
+       x = x+h;
+       Y = [Y y];
+       X = [X x];
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Adams-Bashforthova metoda 4. reda	6.3.1 
+
+% Adams-Bashforthova metoda 4. reda - Uporaba algoritma 6.3.1
+
+N = 10;
+h = 1/N;
+x0 = 0; 
+y0 = 2;
+
+f = @(x,y) -y+1
+
+[X Y] = alg631(f,x0,y0,N,h);
+
+z = 1 + exp(-X);
+hold off
+plot(X,Y,'y*',X,z,'g')
+    xlabel('x')
+    ylabel('Num. resitev (rumena) in tocna resitev (zelena)')
+pause
+plot(X,Y-z)
+    ylabel('globalna napaka')
+    xlabel('x')
+
+#####################################################
+
+function [X,Y] = alg631(f,x0,y0,N,h)
+    % Adams-Bashforthova metoda 4. reda - algoritem 6.3.1
+    % Racunanje resitve diferencialne enacbe
+    % Podatki:
+    %       f        desna stran diferencialne enacbe
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       N           stevilo korakov
+    %       h           dolzina koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    y = y0; 
+    Y = [y];
+    x = x0; 
+    X = [x];
+    d(1) = f(x,y)
+
+    for i=2:4
+        x = x+h;    
+        X = [X x];
+        y = 1+exp(-x); 
+        Y = [Y y];
+        d(i) = f(x,y)
+    end
+
+    for i = 4:N
+        x = x+h; X = [X x];
+        y = y + h*(55*d(4) - 59*d(3) + 37*d(2) - 9*d(1))/24;
+        Y = [Y y];
+        d(5) = f(x,y);
+        for j = 1:4
+            d(j) = d(j+1);
+        end
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	ABM metoda prediktor-korektor 4 	6.3.2 
+
+% Prediktor korektor
+% Adams-Bashforth-Moulton  4. reda - uporaba algoritma 6.3.2
+
+N = 10;
+h = 1/10;
+x0 = 0; 
+y0 = 2;
+f = @(x,y) -y+1;
+
+[X Y] = alg632(f,x0,y0,N,h);
+
+E = Y - (exp(-X) + 1);
+xx = x0:h/10:N*h;
+plot(X,Y,'*g',xx,exp(-xx)+1,'r')
+pause
+plot(X,E)
+
+#####################################################
+
+function [X,Y] = alg632(f,x0,y0,N,h)
+    %  algoritem 6.3.2
+    % Racunanje resitve diferencialne enacbe
+    % Podatki:
+    %       f        desna stran diferencialne enacbe
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       N           stevilo korakov
+    %       h           dolzina koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    x = x0; X = [x];
+    y = y0; Y = [y];
+    d(1) = f(x,y);
+    for i=2:4
+        x = x+h; X = [X x];
+        y = exp(-x)+1;  Y = [Y y];
+        d(i) = f(x,y);
+    end
+
+    for i = 5:N+1
+       x = x + h; X = [X x];
+       yp = y + h*(55*d(4) - 59*d(3) + 37*d(2) - 9*d(1))/24;
+        dp = f(x,yp);
+       y = y + h*(9*dp + 19*d(4) - 5*d(3) + d(2))/24; Y = [Y y];
+        d(5) = f(x,y);
+        for j = 1:4
+            d(j) = d(j+1);
+        end
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Metoda Runge-Kutta 4. reda		6.4.1 
+
+N = 10;
+h = 1/10;
+x0 = 0; 
+y0 = 2;
+f = @(x,y) -y+1;
+
+[X Y] = alg641(f,x0,y0,N,h);
+
+E = Y - (exp(-X) + 1)
+
+#####################################################
+
+function [X,Y] = alg641(f,x0,y0,N,h)
+    % Metoda Runge-Kutta 4. reda - algoritem 6.4.1
+    % Racunanje resitve diferencialne enacbe
+    % Podatki:
+    %       f        desna stran diferencialne enacbe
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       N           stevilo korakov
+    %       h           dolzina koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    x = x0;
+    X = [x];
+    y = y0;
+    Y = [y];
+    for i = 1:N
+       k1 = h*f(x,y);
+       k2 = h*f(x+h/2,y+k1/2);
+       k3 = h*f(x+h/2,y+k2/2);
+       k4 = h*f(x+h,y+k3);
+       x = x+h;
+       X = [X x];
+       y = y + (k1+k2+k2+k3+k3+k4)/6;
+       Y = [Y y];
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	Metoda DOPRI5				6.5.1 
+
+% Metoda DOPRI5 - uporaba algoritma 6.5.1
+
+y0 = 2;
+x0 = 0;
+b = 10;
+epsilon = 1e-8;
+h = b-x0;
+sigma = 0.9;
+f = @(x,y) -y+1;
+
+[X Y] = alg651(f,x0,y0,h,b,epsilon,sigma)
+
+err = Y - (exp(-X)+1);
+maxerr = max(abs(err))
+
+#####################################################
+
+function [X,Y] = alg651(f,x0,y0,h,b,epsilon,sigma)
+    % Metoda DOPRI5 - algoritem 6.5.1
+    % Racunanje resitve diferencialne enacbe s kontrolo koraka
+    % Podatki:
+    %       f           desna stran diferencialne enacbe
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       b           koncna tocka intervala
+    %       epsilon     meja za lokalno napako
+    %       sigma       varnostni faktor pri spremembi koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    y = y0;
+    Y = [y];
+    x = x0;
+    X = [x];
+    H = [0];     
+
+    while x < b
+       k1 = h*f(x,y);
+       k2 = h*f(x + h/5, y + k1/5);
+       k3 = h*f(x + h*0.3, y + k1*0.075 + k2*0.225);
+       k4 = h*f(x+h*0.8, y+44*k1/45-56*k2/15+32*k3/9);
+       k5 = h*f(x+8*h/9, y+19372*k1/6561-25360*k2/2187+64448*k3/6561-212*k4/729);
+       k6 = h*f(x+h, y+9017*k1/3168-355*k2/33+46732*k3/5247+49*k4/176-5103*k5/18656);
+       k7 = h*f(x+h, y+35*k1/384+500*k3/1113+125*k4/192-2187*k5/6784+11*k6/84);
+       le = 71*k1/57600-71*k3/16695+71*k4/1920-17253*k5/339200+22*k6/525-k7/40;
+       if(abs(le)<epsilon*h)
+          y = y + (5179*k1/57600+7571*k3/16695+393*k4/640-92097*k5/339200+187*k6/2100+k7/40);
+                                                        Y = [Y y];              
+          x = x+h;                                  X = [X x];
+          H = [H h];
+          h = h*(epsilon*h/le)^(1/5);
+          if x+h > b
+             h = b-x;
+          end
+          i=i+1;
+       else
+          h = h/2;                                  %H = [H -h];
+       end
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+	ABM metoda prediktor-korektor 4		6.6.1 
+
+
+function [X,Y] = alg641(f,d,x0,y0,N,h)
+    % Adams-Bashforth-Moultonova metoda prediktor-korektor 4. reda za sistem
+    % Racunanje resitve diferencialne enacbe
+    % Podatki:
+    %       f        desna stran diferencialne enacbe
+    %       d           stevilo enacb
+    %       x0          zacetna tocka 
+    %       y0          zacetna vrednost resitve
+    %       N           stevilo korakov
+    %       h           dolzina koraka
+    % Rezultat:
+    %       Y           priblizek za resitev diferencialne enacbe
+
+    x = x0; X = [x];
+    y = y0; Y = [y];
+    d(:,1) = f(x,y);
+    for i=2:4
+        x = x+h; X = [X x];
+        y = [exp(-x); 1];   Y = [Y y];
+        d(:,i) = f(x,y);
+    end
+
+    for i = 5:N+1
+       x = x + h; X = [X x];
+       yp = y + h*(55*d(4) - 59*d(3) + 37*d(2) - 9*d(1))/24;
+        dp = f(x,yp);
+       y = y + h*(9*dp + 19*d(4) - 5*d(3) + d(2))/24; Y = [Y y];
+        d(:,5) = f(x,y);
+        for j = 1:4
+            d(:,j) = d(:,j+1);
+        end
+    end
+end
+
+#####################################################
+#####################################################
+#####################################################
+
+
+	Strelska metoda				6.9.1 
+
+#####################################################
+#####################################################
+#####################################################
+
+
+
+1;
+
+function Y = rk(alpha,x0,x1,y0,N)
+    F = @(x,z) [ z(2)
+                 x.*z(1) ];
+    %x0 = 1; 
+    %x1 = 2;
+    y = [y0;alpha]; % zacetna vrednost in zacetni odvod
+    %N = 10;
+    Y = rk4v(F,y,x0,x1,N);
+end
+
+
+function f = partFb(x0,x1,y0,N)
+    f = @(alpha) rk(alpha,x0,x1,y0,N)(:,end);
+end
+
+function f = partFd(alpha,x0,y0,N)
+    f = @(x1) rk(alpha,x0,x1,y0,N)(:,end);
+end
+
+
+function [x,t] = rk4v(fun,x0,t0,tk,N)
+    % [x,t] = rk4v(fun,x0,t0,tk,N)
+    % izracuna priblizek x za resitev diferencialne enacbe
+    % x'(t) = fun(t,x(t))
+    % x(t0) = x0
+    % na intervalu [t0,tk] po metodi Runge-Kutta 4.reda.
+    % N je stevilo korakov
+
+    d = length(x0);           %dimenzija sistema
+    t = linspace(t0,tk,N+1);  %cas
+    h = t(2)-t(1);            %korak
+    x = zeros(d,N+1);         %prostor za resitev
+    x(:,1) = x0;              %zacetni pogoj
+
+    for i=1:N
+        k1 = h*feval(fun,t(i),x(:,i));
+        k2 = h*feval(fun,t(i)+h/2,x(:,i)+k1/2);
+        k3 = h*feval(fun,t(i)+h/2,x(:,i)+k2/2);
+        k4 = h*feval(fun,t(i)+h,x(:,i)+k3);
+        x(:,i+1) = x(:,i)+(k1+2*k2+2*k3+k4)/6;
+    end
+end
+
+
+
+
+
+function [maks, Y] = maksimum(a,b,ya,yb,alpha0,alpha1,N,m,epsilon)
+    % Racunanje resitve robnega problema
+    %		y''(x) - x * y'(x0) = 0 ,  y(a)=ya , y(b) = yb
+    % Podatki:
+    %		a			zacetna tocka 
+    %		ya			zacetna vrednost resitve y
+    %		b			koncna tocka 
+    %		yb			koncna vrednost resitve z
+    %		alpha0      zacetni priblizk za z(x0)	
+    %		alpha1      zacetni priblizk za z(x0)	
+    %       N           stevilo korakov za runge kuta metodo
+    %		m			stevilo iteracij
+    %       epsilon     maksimalna dovoljena napaka rezultata
+    % Rezultat:
+    %		alpha		prava vrednost za z(x0)
+    %		Y			priblizek za resitev diferencialne enacbe
+
+
+    funkcije;
+
+    [alpha, Y] = strelska(a,b,ya,yb,alpha0,alpha1,N,m,epsilon);
+    
+ 
+    if alpha < 0 
+        maks = max(ya,yb);
+    else
+        fd = partFd(alpha,a,ya,N);
+        %[linspace(a,b,N+1)' rk(alpha,a,b,ya,N)']
+        f = @(x) fd(x)(2);
+        maks = sekantna(f,a,b,N,1e-10);
+    end
+
+end
+
+function [c, fc] = sekantna(f,a,b,N,epsilon)
+    % Podatki
+    %	a, b	zacetni tocki iteracije
+    %	f       zvezna funkcija 
+    %	N	    maksimalno stevilo iteracij
+    %	epsilon	kriterij za ugotavljanje nicelne vrednosti funkcije
+    % Rezultat
+    %	c 	Priblizna vrednost nicle funkcije f
+    % 	fc	Vrednost funkcije f v c
+
+    xs = a; 
+    fs = f(xs);
+    xn = b; 
+    fn = f(xn);
+    n = 0;
+    while (abs(fn) > epsilon) * (n<N)
+       c=xs - fs*(xn-xs)/(fn-fs);
+       xs = xn; 
+       fs = fn;
+       xn = c; 
+       fn = f(c);
+       n = n+1;
+    end
+    if abs(fn) > epsilon
+       c = NaN;
+    end
+
+end
+
+
+function [alpha, Y] = strelska(a,b,ya,yb,alpha0,alpha1,N,m,epsilon)
+    % Racunanje resitve robnega problema
+    %		y''(x) - x * y'(x0) = 0 ,  y(a)=ya , y(b) = yb
+    % Podatki:
+    %		a			zacetna tocka 
+    %		ya			zacetna vrednost resitve y
+    %		b			koncna tocka 
+    %		yb			koncna vrednost resitve z
+    %		alpha0      zacetni priblizk za z(x0)	
+    %		alpha1      zacetni priblizk za z(x0)	
+    %       N           stevilo korakov za runge kuta metodo
+    %		m			stevilo iteracij
+    %       epsilon     maksimalna dovoljena napaka rezultata
+    % Rezultat:
+    %		alpha		prava vrednost za z(x0)
+    %		Y			priblizek za resitev diferencialne enacbe
+
+
+    funkcije
+
+    % fb(alpha) vrne vrednost yb v tocki b pri z(a) = alpha
+    fb = partFb(a,b,ya,N);
+
+    Y = fb(alpha0);
+    ys = Y(1,end);
+
+    Y = [Y fb(alpha1)];
+    yn = Y(1,end);
+    j = 1;
+    while (abs(yn-yb)>epsilon) && (j<m)
+        j = j+1;
+        alpha = alpha0 + (alpha1 - alpha0)*(yb-ys)/(yn-ys);
+        Y = [Y fb(alpha)];
+        ys = yn;
+        yn = Y(1,end);
+        alpha0 = alpha1;
+        alpha1 = alpha;
+    end
+        
+    if abs(yn-yb)>epsilon
+        alpha = NaN;
+    end
+
+end
+
+
+1;
+
+[alpha, Y0] = strelska(1.2,2,-2,-2.5,0,2,20,10,1e-5)
+[m, Y1]     = maksimum(1.2,2,-2,-2.5,0,2,20,10,1e-5)
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,79 @@
+	 
+
+Linearna algebra
+
+	Direktno vstavljanje		2.2.1
+	Obratno vstavljanje		2.2.2
+	Gaussova eliminacija 		2.3.1
+	LU Razcep			2.4.1
+	 
+	LU razcep z delnim pivotiranjem	2.5.1 
+	Razcep Choleskega		2.6.1 
+	Iterativno izboljsevanje	2.7.1
+	QR razcep			2.7.0qr 
+	Jacobijeva iteracija		2.8.1 
+	Gauss-Sedlova iteracija		2.8.2
+	metoda SOR			2.8.0sor
+	Konjugirani gradienti		CG 
+	Potencna metoda	(lastne vr) 	potencna 
+
+
+Resevanje nelinearnih enacb
+
+	Bisekcija			3.2.1 
+	Metoda regDLa falsi		3.3.1 
+	Sekantna metoda			3.3.2 
+	Tangentna metoda		3.4.1
+	Metoda fiksne tocke		3.5.1
+
+
+Interpolacija in aproksimacija
+
+	Lagrangeov interpolacijski polinom	4.2.1
+	Newtonov interpolacijski polinom	4.3.1
+	Izracun Newtonovega  polinoma		NIP 
+	Algoritem 4.3.2 ?
+	Napaka polinomske interpolacije		4.5.2 
+	metoda najmanjsih kvadratov		4.6.1
+	Koeficienti ortogonalnih polinomov	4.7.1
+	 
+
+Numericna integracija
+
+	Trapezna metoda				5.2.1
+	Simpsonova metoda			5.3.1
+	Vrednosti ortogonalnih polinomov	5.3.2 
+	Izracun singDLarnega integrala		5.4.1
+	Trapezna metoda s kontrolo koraka	5.5.1
+	Adaptivna trapezna metoda		5.5.2
+	Rombergova metoda			5.6.1
+	Gauss-Legandrova metoda			Gauss-Legendre, 
+
+Diferencialne enacbe
+
+	Eulerjeva metoda			6.2.1 
+	Adams-Bashforthova metoda 4. reda	6.3.1 
+	ABM metoda prediktor-korektor 4 	6.3.2 
+	Metoda Runge-Kutta 4. reda		6.4.1 
+	Metoda DOPRI5				6.5.1 
+	ABM metoda prediktor-korektor 4		6.6.1 
+	Strelska metoda				6.9.1 
+	Robni problem - koncne diference	
+			koncne diference, 
+			Demo koncne diference, 
+			f 6.9.2, g 6.9.2, h 6.9.2 
+	Robni problem - spektralna metoda	
+			spektralna metoda, 
+			Odvod polinoma Cebiseva, 
+			Drugi odvod polinoma Cebiseva, 
+			Demo spektralna metoda, 
+			f 6.9.3, g 6.9.3, h 6.9.3 
+
+
+
+
+
+
+
+
+
